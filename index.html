@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stroke Prediction Chatbot</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #2196F3 50%, #4CAF50 75%, #00BCD4 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background gradient */
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Medical background elements */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(76, 175, 80, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Floating medical icons */
+    .medical-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .medical-icon {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.1);
+      animation: float 20s infinite linear;
+      font-size: 2rem;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh) rotate(0deg); }
+      100% { transform: translateY(-100px) rotate(360deg); }
+    }
+
+    .medical-icon:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .medical-icon:nth-child(2) { left: 20%; animation-delay: 2s; }
+    .medical-icon:nth-child(3) { left: 30%; animation-delay: 4s; }
+    .medical-icon:nth-child(4) { left: 40%; animation-delay: 6s; }
+    .medical-icon:nth-child(5) { left: 50%; animation-delay: 8s; }
+    .medical-icon:nth-child(6) { left: 60%; animation-delay: 10s; }
+    .medical-icon:nth-child(7) { left: 70%; animation-delay: 12s; }
+    .medical-icon:nth-child(8) { left: 80%; animation-delay: 14s; }
+    .medical-icon:nth-child(9) { left: 90%; animation-delay: 16s; }
+
+    /* Main container */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: slideDown 0.8s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .header h1 {
+      color: #2c3e50;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, #3498db, #2ecc71);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      color: #7f8c8d;
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    /* Chatbox */
+    #chatbox {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 30px;
+      height: 500px;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 20px;
+      position: relative;
+      animation: slideUp 0.8s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Custom scrollbar */
+    #chatbox::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #chatbox::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    #chatbox::-webkit-scrollbar-thumb {
+      background: linear-gradient(45deg, #3498db, #2ecc71);
+      border-radius: 10px;
+    }
+
+    /* Message bubbles */
+    .message {
+      margin: 15px 0;
+      animation: messageSlide 0.5s ease-out;
+    }
+
+    @keyframes messageSlide {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .bot, .user {
+      padding: 15px 20px;
+      border-radius: 20px;
+      max-width: 85%;
+      display: inline-block;
+      clear: both;
+      position: relative;
+      font-size: 1rem;
+      line-height: 1.5;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .bot {
+      background: linear-gradient(135deg, #74b9ff, #0984e3);
+      color: white;
+      float: left;
+      margin-right: 15%;
+    }
+
+    .bot::before {
+      content: '🤖';
+      position: absolute;
+      left: -35px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5rem;
+      background: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .user {
+      background: linear-gradient(135deg, #00b894, #00cec9);
+      color: white;
+      float: right;
+      margin-left: 15%;
+    }
+
+    .user::before {
+      content: '👤';
+      position: absolute;
+      right: -35px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5rem;
+      background: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Input area */
+    #input-area {
+      display: flex;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(15px);
+      padding: 20px;
+      border-radius: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: slideUp 1s ease-out;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 15px 20px;
+      font-size: 16px;
+      border-radius: 25px;
+      border: 2px solid transparent;
+      background: linear-gradient(white, white) padding-box,
+                  linear-gradient(45deg, #3498db, #2ecc71) border-box;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    #userInput:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn {
+      padding: 15px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, #00b894, #00cec9);
+      color: white;
+      min-width: 80px;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 184, 148, 0.4);
+    }
+
+    .voice-btn {
+      background: linear-gradient(135deg, #fd79a8, #e84393);
+      color: white;
+      min-width: 60px;
+    }
+
+    .voice-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(253, 121, 168, 0.4);
+    }
+
+    /* Pulse animation for voice button */
+    .voice-active {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(253, 121, 168, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0); }
+    }
+
+    /* Loading animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        max-width: 100%;
+      }
+
+      .header {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .header p {
+        font-size: 1rem;
+      }
+
+      #chatbox {
+        height: 400px;
+        padding: 20px;
+        margin-bottom: 15px;
+      }
+
+      .bot, .user {
+        max-width: 90%;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+      }
+
+      .bot::before, .user::before {
+        display: none;
+      }
+
+      #input-area {
+        padding: 15px;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      #userInput {
+        font-size: 16px;
+        padding: 12px 16px;
+      }
+
+      .btn {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+
+      .voice-btn {
+        min-width: 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      #chatbox {
+        height: 350px;
+        padding: 15px;
+      }
+
+      .bot, .user {
+        max-width: 95%;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+      }
+
+      #input-area {
+        padding: 12px;
+      }
+
+      #userInput {
+        padding: 10px 14px;
+      }
+
+      .btn {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+    }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      .bot, .user {
+        border: 2px solid;
+      }
+      
+      #userInput {
+        border: 2px solid #000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating medical icons background -->
+  <div class="medical-bg">
+    <i class="fas fa-heart medical-icon"></i>
+    <i class="fas fa-brain medical-icon"></i>
+    <i class="fas fa-heartbeat medical-icon"></i>
+    <i class="fas fa-user-md medical-icon"></i>
+    <i class="fas fa-stethoscope medical-icon"></i>
+    <i class="fas fa-pills medical-icon"></i>
+    <i class="fas fa-syringe medical-icon"></i>
+    <i class="fas fa-ambulance medical-icon"></i>
+    <i class="fas fa-hospital medical-icon"></i>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-brain"></i> Stroke Prediction Assistant</h1>
+      <p>AI-powered health assessment for stroke risk prediction</p>
+    </div>
+
+    <!-- Chatbox -->
+    <div id="chatbox">
+      <div class="message">
+        <div class="bot">
+          Hi! I'm your Stroke Prediction Assistant 🧠<br>
+          Let's check your health risk. First, what's your age?
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div id="input-area">
+      <input type="text" id="userInput" placeholder="Type your answer here..." />
+      <button class="btn send-btn" onclick="handleUserInput()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+      <button class="btn voice-btn" onclick="startVoiceInput()" title="Voice Input">
+        <i class="fas fa-microphone"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { key: "age", question: "What is your age?" },
+      { key: "hypertension", question: "Do you have hypertension? (0 = No, 1 = Yes)" },
+      { key: "heart_disease", question: "Do you have heart disease? (0 = No, 1 = Yes)" },
+      { key: "avg_glucose_level", question: "Enter your average glucose level:" },
+      { key: "bmi", question: "Enter your BMI:" },
+      { key: "gender_Male", question: "Gender? (Male or Female)" },
+      { key: "ever_married_Yes", question: "Have you ever been married? (Yes or No)" },
+      { key: "work_type_Private", question: "Work type? (Private / Self-employed / children)" },
+      { key: "Residence_type_Urban", question: "Do you live in an Urban area? (Yes or No)" },
+      { key: "smoking_status_formerly smoked", question: "Smoking status? (never smoked / formerly smoked / smokes)" }
+    ];
+
+    let currentQuestion = 0;
+    let answers = {};
+
+    function addMessage(msg, sender) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message";
+      
+      const bubbleDiv = document.createElement("div");
+      bubbleDiv.className = sender;
+      bubbleDiv.innerHTML = msg;
+      
+      messageDiv.appendChild(bubbleDiv);
+      document.getElementById("chatbox").appendChild(messageDiv);
+      document.getElementById("chatbox").scrollTop = chatbox.scrollHeight;
+      
+      if (sender === "bot") {
+        setTimeout(() => speakBotResponse(msg), 500);
+      }
+    }
+
+    function showLoading() {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = "message";
+      messageDiv.id = "loading-message";
+      
+      const bubbleDiv = document.createElement("div");
+      bubbleDiv.className = "bot";
+      bubbleDiv.innerHTML = '<span class="loading"></span> Analyzing your data...';
+      
+      messageDiv.appendChild(bubbleDiv);
+      document.getElementById("chatbox").appendChild(messageDiv);
+      document.getElementById("chatbox").scrollTop = chatbox.scrollHeight;
+    }
+
+    function removeLoading() {
+      const loadingMessage = document.getElementById("loading-message");
+      if (loadingMessage) {
+        loadingMessage.remove();
+      }
+    }
+
+    function handleUserInput() {
+      const input = document.getElementById("userInput");
+      const value = input.value.trim();
+      if (value === "") return;
+      
+      addMessage(value, "user");
+
+      const qKey = questions[currentQuestion].key;
+
+      if (qKey === "gender_Male") answers[qKey] = (value.toLowerCase() === "male") ? 1 : 0;
+      else if (qKey === "ever_married_Yes") answers[qKey] = (value.toLowerCase() === "yes") ? 1 : 0;
+      else if (qKey === "Residence_type_Urban") answers[qKey] = (value.toLowerCase() === "yes") ? 1 : 0;
+      else if (qKey === "work_type_Private") {
+        answers["work_type_Private"] = (value.toLowerCase() === "private") ? 1 : 0;
+        answers["work_type_Self-employed"] = (value.toLowerCase() === "self-employed") ? 1 : 0;
+        answers["work_type_children"] = (value.toLowerCase() === "children") ? 1 : 0;
+      }
+      else if (qKey === "smoking_status_formerly smoked") {
+        answers["smoking_status_formerly smoked"] = (value.toLowerCase() === "formerly smoked") ? 1 : 0;
+        answers["smoking_status_never smoked"] = (value.toLowerCase() === "never smoked") ? 1 : 0;
+        answers["smoking_status_smokes"] = (value.toLowerCase() === "smokes") ? 1 : 0;
+      }
+      else {
+        answers[qKey] = isNaN(value) ? 0 : parseFloat(value);
+      }
+
+      currentQuestion++;
+      input.value = "";
+
+      if (currentQuestion < questions.length) {
+        setTimeout(() => addMessage(questions[currentQuestion].question, "bot"), 800);
+      } else {
+        setTimeout(() => {
+          addMessage("Perfect! 📊 Let me analyze your health data and provide your stroke risk assessment...", "bot");
+          showLoading();
+          submitToAPI();
+        }, 800);
+      }
+    }
+
+    function submitToAPI() {
+      fetch('https://strokeprediction-chatbot.onrender.com/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(answers)
+      })
+      .then(response => response.json())
+      .then(data => {
+        removeLoading();
+        setTimeout(() => {
+          const result = `🧠 <strong>Stroke Risk Assessment:</strong><br>${data.prediction}`;
+          addMessage(result, "bot");
+          
+          // Add follow-up message
+          setTimeout(() => {
+            addMessage("🏥 <em>Please consult with a healthcare professional for comprehensive evaluation. This assessment is for informational purposes only.</em>", "bot");
+          }, 2000);
+        }, 1000);
+      })
+      .catch(error => {
+        removeLoading();
+        setTimeout(() => {
+          addMessage("❌ <strong>Connection Error:</strong> Unable to process your assessment. Please check your internet connection and try again.", "bot");
+          console.error("API Error:", error);
+        }, 1000);
+      });
+    }
+
+    // VOICE OUTPUT: Text-to-Speech
+    function speakBotResponse(message) {
+      // Remove HTML tags for speech
+      const cleanMessage = message.replace(/<[^>]*>/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanMessage);
+      utterance.lang = "en-US";
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      speechSynthesis.speak(utterance);
+    }
+
+    // VOICE INPUT: Speech-to-Text
+    function startVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        addMessage("❌ Sorry, your browser doesn't support speech recognition. Please try typing your response.", "bot");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const voiceBtn = document.querySelector('.voice-btn');
+      voiceBtn.classList.add('voice-active');
+      voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const voiceText = event.results[0][0].transcript;
+        document.getElementById("userInput").value = voiceText;
+        voiceBtn.classList.remove('voice-active');
+        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        handleUserInput();
+      };
+
+      recognition.onerror = function(event) {
+        voiceBtn.classList.remove('voice-active');
+        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        addMessage("❌ Sorry, I couldn't hear you clearly. Please try again or type your response.", "bot");
+      };
+
+      recognition.onend = function() {
+        voiceBtn.classList.remove('voice-active');
+        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+      };
+    }
+
+    // Allow Enter key to send message
+    document.getElementById("userInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        handleUserInput();
+      }
+    });
+
+    // Prevent form submission on Enter
+    document.getElementById("userInput").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
