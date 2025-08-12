@@ -30,7 +30,7 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* Medical background elements */
+    
     body::before {
       content: '';
       position: fixed;
@@ -46,7 +46,7 @@
       z-index: -1;
     }
 
-    /* Floating medical icons */
+  
     .medical-bg {
       position: fixed;
       top: 0;
@@ -607,7 +607,7 @@
       .catch(error => {
         removeLoading();
         setTimeout(() => {
-          addMessage("❌ <strong>Connection Error:</strong> Unable to process your assessment. Please check your internet connection and try again.", "bot");
+          addMessage(" <strong>Connection Error:</strong> Unable to process your assessment. Please check your internet connection and try again.", "bot");
           console.error("API Error:", error);
         }, 1000);
       });
@@ -628,7 +628,7 @@
     function startVoiceInput() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        addMessage("❌ Sorry, your browser doesn't support speech recognition. Please try typing your response.", "bot");
+        addMessage(" Sorry, your browser doesn't support speech recognition. Please try typing your response.", "bot");
         return;
       }
 
@@ -654,7 +654,7 @@
       recognition.onerror = function(event) {
         voiceBtn.classList.remove('voice-active');
         voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        addMessage("❌ Sorry, I couldn't hear you clearly. Please try again or type your response.", "bot");
+        addMessage(" Sorry, I couldn't hear you clearly. Please try again or type your response.", "bot");
       };
 
       recognition.onend = function() {
